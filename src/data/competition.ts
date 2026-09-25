@@ -53,6 +53,17 @@ export const OUTCOME_STYLES: Record<Outcome, string> = {
 	crossRanked: 'bg-amber-500',
 };
 
+// Pastille des points dans les classements (texte + bordure + fond).
+export const OUTCOME_BADGE_STYLES: Record<Outcome, string> = {
+	quarterFinal: 'border-emerald-500 bg-emerald-950/60 text-emerald-300',
+	promoted: 'border-emerald-500 bg-emerald-950/60 text-emerald-300',
+	playoffUp: 'border-cyan-500 bg-cyan-950/60 text-cyan-300',
+	playoffDown: 'border-amber-500 bg-amber-950/60 text-amber-300',
+	stay: 'border-slate-600 bg-slate-800/60 text-slate-200',
+	relegated: 'border-rose-500 bg-rose-950/60 text-rose-300',
+	crossRanked: 'border-amber-500 bg-amber-950/60 text-amber-300',
+};
+
 // Position (1-indexée) → issue, par ligue. En Ligue A, les 3es et 4es sont
 // départagés entre groupes (voir LEAGUE_A_CROSS_GROUP) : leur issue finale
 // dépend du classement inter-groupes, calculé dans utils/standings.ts.
