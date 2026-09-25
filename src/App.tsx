@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import AppHeader from './components/AppHeader';
 import InstallBanner from './components/InstallBanner';
+import KnockoutView from './components/KnockoutView';
 import MatchesView from './components/MatchesView';
 import SettingsView from './components/SettingsView';
 import StandingsView from './components/StandingsView';
@@ -96,6 +97,14 @@ export default function App() {
 						)}
 						{activeTab === 'standings' && (
 							<StandingsView
+								groups={groups}
+								matches={matches}
+								teamsById={teamsById}
+								favoriteTeamId={favoriteTeamId}
+							/>
+						)}
+						{activeTab === 'knockout' && (
+							<KnockoutView
 								groups={groups}
 								matches={matches}
 								teamsById={teamsById}
