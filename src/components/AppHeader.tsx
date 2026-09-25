@@ -28,7 +28,7 @@ export default function AppHeader({
 					<button
 						onClick={onRefresh}
 						disabled={isRefreshing}
-						className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 text-lg flex items-center justify-center active:scale-95 transition-transform disabled:opacity-60"
+						className="w-10 h-10 text-lg flex items-center justify-center active:scale-95 transition-transform disabled:opacity-60"
 						title="Actualiser"
 						aria-label="Actualiser les scores"
 					>
@@ -36,11 +36,13 @@ export default function AppHeader({
 					</button>
 					<button
 						onClick={onOpenTeamPicker}
-						className="h-10 rounded-full bg-slate-900 border border-emerald-500/50 pl-2 pr-3 flex items-center gap-2 active:scale-95 transition-transform"
+						className="h-10 pl-2 pr-3 flex items-center gap-2 active:scale-95 transition-transform"
 						title="Choisir mon équipe"
 						aria-label="Choisir mon équipe préférée"
 					>
-						<span className="flags text-2xl leading-none">{favoriteTeam?.flag ?? '⭐'}</span>
+						<span className="flags text-2xl leading-none">
+							{favoriteTeam?.flag ?? '⭐'}
+						</span>
 						<span className="text-xs font-black text-emerald-400">
 							{favoriteTeam ? favoriteTeam.id : 'Mon équipe'}
 						</span>

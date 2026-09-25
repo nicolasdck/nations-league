@@ -52,6 +52,9 @@ src/
 3. **Synchro des scores**
    - Déploiement : `npx supabase functions deploy sync-nations-league --no-verify-jwt` (protégée par `GOAL_WEBHOOK_SECRET`).
    - La migration `…_sync_cron.sql` planifie les appels : toutes les minutes en mode `live` (ESPN n'est contacté que si un match est en cours ou imminent), toutes les 30 min en mode `full`.
+   - Hors période de matchs (aucun match à ±2 jours), le mode `full` ne s'exécute que toutes les 2 h (~70 appels ESPN/jour).
+   - Santé : table `sync_status` (affichée dans Réglages). Au 3e échec consécutif, e-mail d'alerte via Resend si configuré :
+     `npx supabase secrets set RESEND_API_KEY=… ALERT_EMAIL_TO=vous@exemple.com` (+ `ALERT_EMAIL_FROM` si domaine vérifié), puis un e-mail au rétablissement.
    - Manuel depuis un poste : `npm run sync` / `npm run sync:dry` (lit `.env`).
    - Source : API publique ESPN (`site.api.espn.com`, sans clé). Sofascore a été écarté : il renvoie 403 à tout client non-navigateur.
 

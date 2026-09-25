@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import AppHeader from './components/AppHeader';
+import CountdownBanner from './components/CountdownBanner';
 import InstallBanner from './components/InstallBanner';
 import KnockoutView from './components/KnockoutView';
 import MatchesView from './components/MatchesView';
@@ -65,6 +66,14 @@ export default function App() {
 				onOpenTeamPicker={() => setShowTeamPicker(true)}
 				onRefresh={() => void refresh()}
 			/>
+			{favoriteTeamId && status === 'ready' && (
+				<CountdownBanner
+					matches={matches}
+					teamsById={teamsById}
+					favoriteTeamId={favoriteTeamId}
+					onOpen={() => setActiveTab('matches')}
+				/>
+			)}
 			<TabNav activeTab={activeTab} onTabChange={setActiveTab} liveCount={liveCount} />
 
 			<main className="flex-1 w-full max-w-3xl mx-auto px-4 pt-4 pb-32">

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { NotificationLevel, Team } from '../types/competition';
 import type { PushSupport } from '../hooks/usePushNotifications';
 import NotificationSettings from './NotificationSettings';
+import SyncStatusPanel from './SyncStatusPanel';
 
 type SettingsViewProps = {
 	favoriteTeam: Team | null;
@@ -72,6 +73,10 @@ export default function SettingsView({
 					subscribe={push.subscribe}
 					unsubscribe={push.unsubscribe}
 				/>
+			</Card>
+
+			<Card title="Synchronisation des scores">
+				<SyncStatusPanel />
 			</Card>
 
 			<Card title="À propos">

@@ -394,6 +394,19 @@ export async function hasActiveOrImminentMatch(supabase: SyncClient): Promise<bo
 	return (count ?? 0) > 0;
 }
 
+// Vrai si un match a eu lieu ou est prévu dans ±`windowMs` : période où
+// horaires et reports bougent, le mode « full » garde alors sa fréquence haute.
+export async function hasMatchNear(supabase: SyncClient, windowMs: number): Promise<boolean> {
+	const now = Date.now();
+	const { count, error } = await supabase
+		.from('matches')
+		.select('id', { count: 'exact', head: true })
+		.gte('kickoff_at', new Date(now - windowMs).toISOString())
+		.lte('kickoff_at', new Date(now + windowMs).toISOString());
+	if (error) throw error;
+	return (count ?? 0) > 0;
+}
+
 export async function runSync(supabase: SyncClient, options: SyncOptions = {}): Promise<SyncSummary> {
 	const scope = options.scope ?? 'full';
 	const dryRun = options.dryRun ?? false;

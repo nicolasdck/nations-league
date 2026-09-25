@@ -222,6 +222,39 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			sync_status: {
+				Row: {
+					id: string;
+					last_attempt_at: string | null;
+					last_success_at: string | null;
+					last_full_success_at: string | null;
+					consecutive_failures: number;
+					last_error: string | null;
+					alerted_at: string | null;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					last_attempt_at?: string | null;
+					last_success_at?: string | null;
+					last_full_success_at?: string | null;
+					consecutive_failures?: number;
+					last_error?: string | null;
+					alerted_at?: string | null;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					last_attempt_at?: string | null;
+					last_success_at?: string | null;
+					last_full_success_at?: string | null;
+					consecutive_failures?: number;
+					last_error?: string | null;
+					alerted_at?: string | null;
+					updated_at?: string;
+				};
+				Relationships: [];
+			};
 		};
 		Views: { [_ in never]: never };
 		Functions: {
