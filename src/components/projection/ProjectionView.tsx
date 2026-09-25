@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { FINALS_DATES, QUARTER_FINAL_DATES } from '../../data/competition';
 import type { Group, LeagueCode, Match, TeamsById } from '../../types/competition';
+import { buildProjectedBracket } from '../../utils/bracketModel';
 import { projectCompetition, type ProjectedTie, type ProjectionMode } from '../../utils/projection';
 import LeagueTabs from '../LeagueTabs';
 import OutcomeLegend from '../OutcomeLegend';
@@ -97,6 +98,8 @@ export default function ProjectionView({
 		[groups, matches, teamsById, mode, favoriteTeamId],
 	);
 
+	const bracketModel = useMemo(() => (projection ? buildProjectedBracket(projection) : null), [projection]);
+
 	const supporterUnavailable = mode === 'supporter' && !favoriteTeam;
 	const champion = projection?.championId ? teamsById[projection.championId] : undefined;
 
@@ -165,14 +168,19 @@ export default function ProjectionView({
 							</div>
 
 							{layout === 'global' && (
-								<GlobalBracket
-									quarterFinals={projection.quarterFinals}
-									semiFinals={projection.semiFinals}
-									final={projection.final}
-									standingsByGroup={projection.standingsByGroup}
-									teamsById={teamsById}
-									favoriteTeamId={favoriteTeamId}
-								/>
+								bracketModel && (
+									<GlobalBracket
+										model={bracketModel}
+										teamsById={teamsById}
+										favoriteTeamId={favoriteTeamId}
+										championCaption={(name) => `${name} — vainqueur projeté`}
+										renderDetail={(tie) =>
+											tie.projected ? (
+												<TieCard tie={tie.projected} label={tie.title} teamsById={teamsById} favoriteTeamId={favoriteTeamId} />
+											) : null
+										}
+									/>
+								)
 							)}
 
 							{layout === 'columns' && champion && (
