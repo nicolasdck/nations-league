@@ -5,7 +5,9 @@ import { projectCompetition, type ProjectedTie, type ProjectionMode } from '../.
 import LeagueTabs from '../LeagueTabs';
 import OutcomeLegend from '../OutcomeLegend';
 import StandingsTable from '../StandingsTable';
+import { readString, STORAGE_KEYS, writeString } from '../../utils/storage';
 import FavoritePath from './FavoritePath';
+import GlobalBracket from './GlobalBracket';
 import TieCard from './TieCard';
 
 type ProjectionViewProps = {
@@ -15,6 +17,8 @@ type ProjectionViewProps = {
 	favoriteTeamId: string | null;
 	onPickTeam: () => void;
 };
+
+type BracketLayout = 'global' | 'columns';
 
 const MODES: { id: ProjectionMode; icon: string; label: string; help: string }[] = [
 	{
@@ -70,6 +74,13 @@ export default function ProjectionView({
 	onPickTeam,
 }: ProjectionViewProps) {
 	const [mode, setMode] = useState<ProjectionMode>('logical');
+	const [layout, setLayout] = useState<BracketLayout>(() =>
+		readString(STORAGE_KEYS.bracketLayout) === 'columns' ? 'columns' : 'global',
+	);
+	const changeLayout = (next: BracketLayout) => {
+		setLayout(next);
+		writeString(STORAGE_KEYS.bracketLayout, next);
+	};
 	const favoriteTeam = favoriteTeamId ? teamsById[favoriteTeamId] : undefined;
 	const favoriteLeague = useMemo<LeagueCode | null>(
 		() => groups.find((g) => g.id === favoriteTeam?.groupId)?.league ?? null,
@@ -126,14 +137,45 @@ export default function ProjectionView({
 						)}
 
 						<section className="flex flex-col gap-3">
-							<div className="flex items-baseline justify-between">
-								<h3 className="text-sm font-black text-slate-100">Tableau final · Ligue A</h3>
-								<span className="text-[10px] text-slate-500">
-									QF {QUARTER_FINAL_DATES} · Finales {FINALS_DATES}
-								</span>
+							<div className="flex items-center justify-between gap-3">
+								<div className="min-w-0">
+									<h3 className="text-sm font-black text-slate-100">Tableau final · Ligue A</h3>
+									<p className="text-[10px] text-slate-500">
+										QF {QUARTER_FINAL_DATES} · Finales {FINALS_DATES}
+									</p>
+								</div>
+								<div className="flex shrink-0 gap-0.5 rounded-lg border border-slate-800 bg-slate-900 p-0.5">
+									{(
+										[
+											['global', 'Globale'],
+											['columns', 'Colonnes'],
+										] as const
+									).map(([id, label]) => (
+										<button
+											key={id}
+											onClick={() => changeLayout(id)}
+											className={`rounded-md px-2.5 py-1 text-[10px] font-black transition-colors ${
+												layout === id ? 'bg-emerald-500 text-slate-950' : 'text-slate-400'
+											}`}
+										>
+											{label}
+										</button>
+									))}
+								</div>
 							</div>
 
-							{champion && (
+							{layout === 'global' && (
+								<GlobalBracket
+									quarterFinals={projection.quarterFinals}
+									semiFinals={projection.semiFinals}
+									final={projection.final}
+									standingsByGroup={projection.standingsByGroup}
+									teamsById={teamsById}
+									favoriteTeamId={favoriteTeamId}
+								/>
+							)}
+
+							{layout === 'columns' && champion && (
 								<div className="rounded-xl bg-linear-to-r from-emerald-500 to-cyan-500 p-px">
 									<div className="rounded-xl bg-slate-950/90 px-4 py-3 flex items-center gap-3">
 										<span className="text-3xl">🏆</span>
@@ -149,40 +191,53 @@ export default function ProjectionView({
 								</div>
 							)}
 
-							<div className="-mx-4 px-4 overflow-x-auto bracket-scroll pb-2">
-								<div className="grid grid-cols-[repeat(3,minmax(10.5rem,1fr))] gap-3 min-w-[34rem]">
-									<TieColumn
-										title="Quarts (A/R)"
-										ties={projection.quarterFinals}
-										labelPrefix="QF"
-										teamsById={teamsById}
-										favoriteTeamId={favoriteTeamId}
-									/>
-									<TieColumn
-										title="Demi-finales"
-										ties={projection.semiFinals}
-										labelPrefix="Demie"
-										teamsById={teamsById}
-										favoriteTeamId={favoriteTeamId}
-									/>
-									<div className="flex flex-col gap-2 min-w-0">
-										<h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Finale</h4>
-										<div className="flex flex-col justify-center gap-3 flex-1">
-											{projection.final && (
-												<TieCard tie={projection.final} label="Finale" teamsById={teamsById} favoriteTeamId={favoriteTeamId} />
-											)}
-											{projection.thirdPlace && (
-												<TieCard
-													tie={projection.thirdPlace}
-													label="3e place"
-													teamsById={teamsById}
-													favoriteTeamId={favoriteTeamId}
-												/>
-											)}
+							{layout === 'columns' && (
+								<div className="-mx-4 px-4 overflow-x-auto bracket-scroll pb-2">
+									<div className="grid grid-cols-[repeat(3,minmax(10.5rem,1fr))] gap-3 min-w-136">
+										<TieColumn
+											title="Quarts (A/R)"
+											ties={projection.quarterFinals}
+											labelPrefix="QF"
+											teamsById={teamsById}
+											favoriteTeamId={favoriteTeamId}
+										/>
+										<TieColumn
+											title="Demi-finales"
+											ties={projection.semiFinals}
+											labelPrefix="Demie"
+											teamsById={teamsById}
+											favoriteTeamId={favoriteTeamId}
+										/>
+										<div className="flex flex-col gap-2 min-w-0">
+											<h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Finale</h4>
+											<div className="flex flex-col justify-center gap-3 flex-1">
+												{projection.final && (
+													<TieCard tie={projection.final} label="Finale" teamsById={teamsById} favoriteTeamId={favoriteTeamId} />
+												)}
+												{projection.thirdPlace && (
+													<TieCard
+														tie={projection.thirdPlace}
+														label="3e place"
+														teamsById={teamsById}
+														favoriteTeamId={favoriteTeamId}
+													/>
+												)}
+											</div>
 										</div>
 									</div>
 								</div>
-							</div>
+							)}
+
+							{layout === 'global' && projection.thirdPlace && (
+								<div className="max-w-xs w-full mx-auto">
+									<TieCard
+										tie={projection.thirdPlace}
+										label="Match pour la 3e place"
+										teamsById={teamsById}
+										favoriteTeamId={favoriteTeamId}
+									/>
+								</div>
+							)}
 							<p className="text-[10px] text-slate-500 leading-snug">
 								Appariements « Projeté » : schéma croisé (1er d'un groupe contre 2e d'un autre) en attendant le
 								tirage UEFA ; dès que les matchs officiels sont connus, ils remplacent la projection.

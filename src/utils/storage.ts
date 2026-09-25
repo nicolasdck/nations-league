@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
 	favoriteTeam: 'unl:favorite-team',
 	notificationLevel: 'unl:notification-level',
 	activeTab: 'unl:active-tab',
+	bracketLayout: 'unl:bracket-layout',
 	installDismissedAt: 'unl:install-dismissed-at',
 } as const;
 
