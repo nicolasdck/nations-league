@@ -261,7 +261,7 @@ export default function ProjectionView({
 							)}
 
 							{layout === 'columns' && (
-								<div className="-mx-4 px-4 overflow-x-auto bracket-scroll pb-2">
+								<div className="-mx-4 px-4 overflow-x-auto pb-2">
 									<div className="grid grid-cols-[repeat(3,minmax(10.5rem,1fr))] gap-3 min-w-136">
 										<TieColumn
 											title="Quarts (A/R)"

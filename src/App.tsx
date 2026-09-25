@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react
 import { Toaster } from 'react-hot-toast';
 import AppHeader from './components/AppHeader';
 import CountdownBanner from './components/CountdownBanner';
-import MatchDetailsSheet from './components/match/MatchDetailsSheet';
+import GoalCelebration from './components/GoalCelebration';
 import InstallBanner from './components/InstallBanner';
 import KnockoutView from './components/KnockoutView';
 import MatchesView from './components/MatchesView';
@@ -12,6 +12,7 @@ import TabNav from './components/TabNav';
 import TeamPickerSheet from './components/TeamPickerSheet';
 import UpdateBanner from './components/UpdateBanner';
 import { useCompetitionData } from './hooks/useCompetitionData';
+import { useGoalCelebrations } from './hooks/useGoalCelebrations';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { usePushNotifications } from './hooks/usePushNotifications';
 import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate';
@@ -24,6 +25,7 @@ import { readString, STORAGE_KEYS, writeString } from './utils/storage';
 // Chargée à la demande : le moteur de projection et ses vues ne pèsent pas
 // sur le premier affichage (onglet Matchs).
 const ProjectionView = lazy(() => import('./components/projection/ProjectionView'));
+const MatchDetailsSheet = lazy(() => import('./components/match/MatchDetailsSheet'));
 
 function readActiveTab(): ActiveTab {
 	const saved = readString(STORAGE_KEYS.activeTab);
@@ -35,6 +37,12 @@ export default function App() {
 	const { userId, favoriteTeamId, setFavoriteTeamId, notificationLevel, setNotificationLevel } =
 		useUserPreferences();
 	const push = usePushNotifications(userId);
+	const goals = useGoalCelebrations(matches, fetchedAt, favoriteTeamId, notificationLevel);
+	const goalKey = goals.current?.key ?? null;
+	const dismissGoal = goals.dismiss;
+	const handleGoalDone = useCallback(() => {
+		if (goalKey) dismissGoal(goalKey);
+	}, [goalKey, dismissGoal]);
 	const install = useInstallPrompt();
 	const update = useServiceWorkerUpdate();
 
@@ -160,8 +168,20 @@ export default function App() {
 				)}
 			</main>
 
+			{goals.current && (
+				<GoalCelebration
+					key={goals.current.key}
+					goal={goals.current}
+					match={matches.find((m) => m.id === goals.current?.matchId)}
+					teamsById={teamsById}
+					onDone={handleGoalDone}
+				/>
+			)}
+
 			{openedMatch && (
-				<MatchDetailsSheet match={openedMatch} teamsById={teamsById} favoriteTeamId={favoriteTeamId} onClose={closeMatch} />
+				<Suspense fallback={null}>
+					<MatchDetailsSheet match={openedMatch} teamsById={teamsById} favoriteTeamId={favoriteTeamId} onClose={closeMatch} />
+				</Suspense>
 			)}
 
 			{showTeamPicker && (

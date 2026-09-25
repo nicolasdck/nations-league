@@ -8,6 +8,20 @@ export default defineConfig({
 		// Horodatage du build, affiché dans Réglages pour identifier la version servie.
 		__APP_VERSION__: JSON.stringify(new Date().toISOString().slice(0, 16).replace('T', ' ')),
 	},
+	build: {
+		rollupOptions: {
+			output: {
+				// Bibliothèques (React, Supabase) dans un fichier séparé : il ne
+				// change pas d'un déploiement à l'autre et reste en cache, une mise
+				// à jour de l'app ne retélécharge que son propre code.
+				manualChunks(id) {
+					if (id.includes('node_modules/react') || id.includes('node_modules/scheduler')) return 'react';
+					if (id.includes('node_modules/@supabase')) return 'supabase';
+					return undefined;
+				},
+			},
+		},
+	},
 	plugins: [
 		react(),
 		tailwindcss(),

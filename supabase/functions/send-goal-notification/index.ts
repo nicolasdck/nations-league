@@ -120,7 +120,16 @@ Deno.serve(async (req) => {
 			Deno.env.get('VAPID_PRIVATE_KEY') ?? '',
 		);
 
-		const message = JSON.stringify({ title, body, tag: `match-${record.id}` });
+		// matchId + side : l'app joue la célébration « GOAL! » quand on touche la
+		// notification (si les deux équipes marquent dans la même écriture, on
+		// célèbre le but de l'équipe à domicile).
+		const message = JSON.stringify({
+			title,
+			body,
+			tag: `match-${record.id}`,
+			matchId: record.id,
+			side: homeScored ? 'home' : 'away',
+		});
 		const list = (recipients ?? []) as { endpoint: string; subscription: webpush.PushSubscription }[];
 		const expired: string[] = [];
 

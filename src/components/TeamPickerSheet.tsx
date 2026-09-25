@@ -30,7 +30,12 @@ export default function TeamPickerSheet({
 				.filter((g) => g.league === league)
 				.flatMap((g) => g.teamIds.map((id) => teamsById[id]))
 				.filter((t): t is Team => Boolean(t))
-				.filter((t) => !q || normalize(t.name).includes(q) || t.id.toLowerCase().includes(q))
+				.filter(
+					(t) =>
+						!q ||
+						normalize(t.name).includes(q) ||
+						t.id.toLowerCase().includes(q),
+				)
 				.sort((a, b) => a.name.localeCompare(b.name, 'fr')),
 		})).filter((s) => s.teams.length > 0);
 	}, [groups, teamsById, query]);
@@ -50,7 +55,9 @@ export default function TeamPickerSheet({
 				<div className="p-4 pb-2">
 					<div className="w-10 h-1 rounded-full bg-slate-700 mx-auto mb-3" />
 					<div className="flex items-center justify-between mb-3">
-						<h2 className="text-base font-black text-slate-100">Mon équipe préférée</h2>
+						<h2 className="text-base font-black text-slate-100">
+							Mon équipe préférée
+						</h2>
 						{selectedTeamId && (
 							<button
 								onClick={() => {
@@ -74,7 +81,9 @@ export default function TeamPickerSheet({
 
 				<div className="overflow-y-auto overscroll-contain px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
 					{sections.length === 0 && (
-						<p className="text-center text-sm text-slate-500 py-8">Aucune équipe trouvée.</p>
+						<p className="text-center text-sm text-slate-500 py-8">
+							Aucune équipe trouvée.
+						</p>
 					)}
 					{sections.map(({ league, teams }) => (
 						<section key={league} className="mb-4">
@@ -96,10 +105,16 @@ export default function TeamPickerSheet({
 													? 'bg-emerald-950/60 border-emerald-400'
 													: 'bg-slate-950 border-slate-800 active:border-slate-600'
 											}`}
-											style={{ boxShadow: `inset 3px 0 0 ${team.primaryColor}` }}
+											style={{
+												boxShadow: `inset 3px 0 0 ${team.primaryColor}`,
+											}}
 										>
-											<span className="flags text-2xl leading-none">{team.flag}</span>
-											<span className="text-xs font-bold text-slate-200 truncate">{team.name}</span>
+											<span className="flags text-2xl leading-none">
+												{team.flag}
+											</span>
+											<span className="text-xs font-bold text-slate-200 truncate">
+												{team.name}
+											</span>
 										</button>
 									);
 								})}

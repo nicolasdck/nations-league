@@ -18,6 +18,43 @@
 	--animate-fade-in: fade-in 0.15s ease-out;
 	--animate-slide-up: slide-up 0.25s ease-out;
 	--animate-slide-down: slide-down 0.25s ease-out;
+	--animate-goal-pop: goal-pop 0.9s cubic-bezier(0.2, 1.6, 0.4, 1) both, goal-pulse 1.2s ease-in-out 0.9s infinite;
+	--animate-goal-rise: goal-rise 0.6s ease-out 0.35s both;
+}
+
+@keyframes goal-pop {
+	0% {
+		transform: scale(0.2) rotate(-12deg);
+		opacity: 0;
+	}
+	60% {
+		transform: scale(1.15) rotate(3deg);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(1) rotate(0deg);
+	}
+}
+
+@keyframes goal-pulse {
+	0%,
+	100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.06);
+	}
+}
+
+@keyframes goal-rise {
+	from {
+		transform: translateY(24px);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
 }
 
 @keyframes fade-in {
@@ -72,9 +109,54 @@ button {
 	}
 }
 
-.bracket-scroll {
-	scrollbar-width: thin;
-	scrollbar-color: var(--color-emerald-500) #1e293b;
+/* Scrollbars aux couleurs de l'équipe préférée : les rampes emerald
+   (principale) et cyan (secondaire) sont reteintes par utils/teamTheme.ts,
+   les barres suivent donc automatiquement le changement d'équipe.
+   Chrome/Edge/Safari : pseudo-éléments WebKit (pouce arrondi en dégradé).
+   Firefox : propriétés standard, limitées à une couleur unie. */
+::-webkit-scrollbar {
+	width: 10px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: color-mix(in srgb, var(--color-slate-900) 70%, transparent);
+	border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+	border-radius: 9999px;
+	/* Bordure de la couleur du fond : le pouce paraît plus fin et « flotte ». */
+	border: 2px solid var(--color-slate-950);
+	background: linear-gradient(180deg, var(--color-emerald-400), var(--color-cyan-400));
+}
+
+::-webkit-scrollbar-thumb:horizontal {
+	background: linear-gradient(90deg, var(--color-emerald-400), var(--color-cyan-400));
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: linear-gradient(180deg, var(--color-emerald-300), var(--color-cyan-300));
+}
+
+::-webkit-scrollbar-thumb:horizontal:hover {
+	background: linear-gradient(90deg, var(--color-emerald-300), var(--color-cyan-300));
+}
+
+::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
+/* Firefox uniquement : dans Chrome ≥ 121, scrollbar-color désactiverait les
+   pseudo-éléments WebKit ci-dessus (et donc le dégradé). Dans @layer base
+   pour que l'utilitaire no-scrollbar (@layer utilities) garde la priorité. */
+@layer base {
+	@supports (-moz-appearance: none) {
+		* {
+			scrollbar-width: thin;
+			scrollbar-color: var(--color-emerald-500) color-mix(in srgb, var(--color-slate-900) 70%, transparent);
+		}
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {

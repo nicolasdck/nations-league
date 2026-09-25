@@ -40,6 +40,19 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
 
 // Le service worker est enregistré par useServiceWorkerUpdate (App), qui
 // pilote aussi la bannière de mise à jour.
+
+// En dev, aucun service worker n'est utilisé (devOptions.enabled: false). Un SW
+// laissé sur localhost:5173 par un autre projet intercepterait pourtant les
+// requêtes (cache Supabase périmé, manifeste invalide) : on le désinscrit.
+if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+	void navigator.serviceWorker.getRegistrations().then((registrations) => {
+		for (const registration of registrations) {
+			void registration.unregister().then((done) => {
+				if (done) console.info('Service worker étranger désinscrit (dev) :', registration.scope);
+			});
+		}
+	});
+}
 createRoot(document.getElementById('root')!).render(
 	<StrictMode>
 		<ErrorBoundary>
