@@ -1,3 +1,4 @@
+import type React from 'react';
 import { STAGE_LABELS } from '../data/competition';
 import { isLive, type Match, type TeamsById } from '../types/competition';
 import { formatTime } from '../utils/format';
@@ -7,6 +8,8 @@ type MatchRowProps = {
 	match: Match;
 	teamsById: TeamsById;
 	favoriteTeamId: string | null;
+	// Ouvre la fiche du match ; sans callback, la ligne n'est pas interactive.
+	onOpen?: (match: Match) => void;
 };
 
 function StatusBadge({ match }: { match: Match }) {
@@ -31,7 +34,7 @@ function stageLabel(match: Match): string {
 	return `${STAGE_LABELS[match.stage]}${match.leg ? ` · ${match.leg === 1 ? 'aller' : 'retour'}` : ''}`;
 }
 
-export default function MatchRow({ match, teamsById, favoriteTeamId }: MatchRowProps) {
+export default function MatchRow({ match, teamsById, favoriteTeamId, onOpen }: MatchRowProps) {
 	const home = match.homeTeamId ? teamsById[match.homeTeamId] : undefined;
 	const away = match.awayTeamId ? teamsById[match.awayTeamId] : undefined;
 	const isFavorite =
@@ -43,7 +46,21 @@ export default function MatchRow({ match, teamsById, favoriteTeamId }: MatchRowP
 
 	return (
 		<article
-			className={`p-3 rounded-lg flex flex-col gap-2 transition-all ${
+			{...(onOpen
+				? {
+						role: 'button',
+						tabIndex: 0,
+						'aria-label': 'Ouvrir la fiche du match',
+						onClick: () => onOpen(match),
+						onKeyDown: (e: React.KeyboardEvent) => {
+							if (e.key === 'Enter' || e.key === ' ') {
+								e.preventDefault();
+								onOpen(match);
+							}
+						},
+					}
+				: {})}
+			className={`p-3 rounded-lg flex flex-col gap-2 transition-all ${onOpen ? 'cursor-pointer active:scale-[0.99] hover:brightness-110 focus-visible:outline-2 focus-visible:outline-cyan-400' : ''} ${
 				isFavorite
 					? 'bg-emerald-950/40 border border-emerald-500/70 shadow-md shadow-emerald-500/10'
 					: live

@@ -109,6 +109,17 @@ export function predictScore(
 	return scoreFromGap(home + (neutral ? 0 : HOME_ADVANTAGE) - away);
 }
 
+// Score prédit par le modèle théorique (sans biais supporter), affiché comme
+// suggestion dans le simulateur « Et si ? ».
+export function predictedScore(
+	homeTeamId: string,
+	awayTeamId: string,
+	teams: TeamsById,
+	neutral = false,
+): [number, number] {
+	return predictScore(homeTeamId, awayTeamId, { mode: 'logical', favoriteTeamId: null, teams }, neutral);
+}
+
 // Match en cours : le mode logique fige le score actuel ; le mode supporter
 // garantit la victoire de l'équipe préférée.
 function finishLiveScore(

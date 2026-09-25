@@ -6,6 +6,7 @@ export const STORAGE_KEYS = {
 	notificationLevel: 'unl:notification-level',
 	activeTab: 'unl:active-tab',
 	bracketLayout: 'unl:bracket-layout',
+	whatIf: 'unl:what-if-scores',
 	installDismissedAt: 'unl:install-dismissed-at',
 } as const;
 

@@ -7,7 +7,7 @@ type CountdownBannerProps = {
 	matches: Match[];
 	teamsById: TeamsById;
 	favoriteTeamId: string;
-	onOpen: () => void;
+	onOpen: (match: Match) => void;
 };
 
 const SECOND = 1000;
@@ -112,7 +112,7 @@ export default function CountdownBanner({
 
 	return (
 		<button
-			onClick={onOpen}
+			onClick={() => onOpen(match)}
 			className={`w-full border-b py-2.5 px-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center shadow-md ${
 				live
 					? 'bg-linear-to-r from-slate-950 via-rose-950/40 to-slate-950 border-rose-500/40'

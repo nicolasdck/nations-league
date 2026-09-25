@@ -1,7 +1,8 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import AppHeader from './components/AppHeader';
 import CountdownBanner from './components/CountdownBanner';
+import MatchDetailsSheet from './components/match/MatchDetailsSheet';
 import InstallBanner from './components/InstallBanner';
 import KnockoutView from './components/KnockoutView';
 import MatchesView from './components/MatchesView';
@@ -17,7 +18,7 @@ import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate';
 import { useTeamTheme } from './hooks/useTeamTheme';
 import { useUserPreferences } from './hooks/useUserPreferences';
 import { TABS, type ActiveTab } from './data/tabs';
-import { isLive } from './types/competition';
+import { isLive, type Match } from './types/competition';
 import { readString, STORAGE_KEYS, writeString } from './utils/storage';
 
 // Chargée à la demande : le moteur de projection et ses vues ne pèsent pas
@@ -39,6 +40,10 @@ export default function App() {
 
 	const [activeTab, setActiveTab] = useState<ActiveTab>(readActiveTab);
 	const [showTeamPicker, setShowTeamPicker] = useState(false);
+	// Fiche match ouverte : on garde l'id pour suivre les mises à jour Realtime.
+	const [openMatchId, setOpenMatchId] = useState<number | null>(null);
+	const openMatch = useCallback((match: Match) => setOpenMatchId(match.id), []);
+	const closeMatch = useCallback(() => setOpenMatchId(null), []);
 
 	useEffect(() => {
 		writeString(STORAGE_KEYS.activeTab, activeTab);
@@ -47,6 +52,8 @@ export default function App() {
 
 	const favoriteTeam = favoriteTeamId ? (teamsById[favoriteTeamId] ?? null) : null;
 	useTeamTheme(favoriteTeam);
+
+	const openedMatch = openMatchId !== null ? matches.find((m) => m.id === openMatchId) : undefined;
 
 	const liveCount = useMemo(() => matches.filter(isLive).length, [matches]);
 
@@ -71,7 +78,7 @@ export default function App() {
 					matches={matches}
 					teamsById={teamsById}
 					favoriteTeamId={favoriteTeamId}
-					onOpen={() => setActiveTab('matches')}
+					onOpen={openMatch}
 				/>
 			)}
 			<TabNav activeTab={activeTab} onTabChange={setActiveTab} liveCount={liveCount} />
@@ -99,6 +106,7 @@ export default function App() {
 						{activeTab === 'matches' && (
 							<MatchesView
 								matches={matches}
+								onOpenMatch={openMatch}
 								groups={groups}
 								teamsById={teamsById}
 								favoriteTeamId={favoriteTeamId}
@@ -115,6 +123,7 @@ export default function App() {
 						{activeTab === 'knockout' && (
 							<KnockoutView
 								groups={groups}
+								onOpenMatch={openMatch}
 								matches={matches}
 								teamsById={teamsById}
 								favoriteTeamId={favoriteTeamId}
@@ -150,6 +159,10 @@ export default function App() {
 					</>
 				)}
 			</main>
+
+			{openedMatch && (
+				<MatchDetailsSheet match={openedMatch} teamsById={teamsById} favoriteTeamId={favoriteTeamId} onClose={closeMatch} />
+			)}
 
 			{showTeamPicker && (
 				<TeamPickerSheet

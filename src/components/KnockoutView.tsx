@@ -10,6 +10,7 @@ type KnockoutViewProps = {
 	matches: Match[];
 	teamsById: TeamsById;
 	favoriteTeamId: string | null;
+	onOpenMatch: (match: Match) => void;
 };
 
 type Section = {
@@ -25,7 +26,7 @@ const byKickoff = (a: Match, b: Match) => a.kickoffAt.localeCompare(b.kickoffAt)
 // Tableau final réel uniquement : emplacements vides en attendant les
 // résultats, puis mise à jour au fil des matchs (tirage, scores, qualifiés).
 // Aucune projection ici (voir l'onglet Projection).
-export default function KnockoutView({ groups, matches, teamsById, favoriteTeamId }: KnockoutViewProps) {
+export default function KnockoutView({ groups, matches, teamsById, favoriteTeamId, onOpenMatch }: KnockoutViewProps) {
 	const model = useMemo(() => buildRealBracket(matches), [matches]);
 
 	const sections = useMemo<Section[]>(() => {
@@ -64,7 +65,7 @@ export default function KnockoutView({ groups, matches, teamsById, favoriteTeamI
 					championCaption={(name) => `${name} — vainqueur de la Ligue des Nations`}
 					renderDetail={(tie) =>
 						tie.matches.length > 0 ? (
-							tie.matches.map((m) => <MatchRow key={m.id} match={m} teamsById={teamsById} favoriteTeamId={favoriteTeamId} />)
+							tie.matches.map((m) => <MatchRow key={m.id} match={m} teamsById={teamsById} favoriteTeamId={favoriteTeamId} onOpen={onOpenMatch} />)
 						) : (
 							<p className="text-center text-xs text-slate-500">À déterminer.</p>
 						)
@@ -80,7 +81,7 @@ export default function KnockoutView({ groups, matches, teamsById, favoriteTeamI
 					</div>
 					{section.matches.length > 0 ? (
 						section.matches.map((m) => (
-							<MatchRow key={m.id} match={m} teamsById={teamsById} favoriteTeamId={favoriteTeamId} />
+							<MatchRow key={m.id} match={m} teamsById={teamsById} favoriteTeamId={favoriteTeamId} onOpen={onOpenMatch} />
 						))
 					) : (
 						<p className="rounded-lg border border-dashed border-slate-800 px-3 py-3 text-xs text-slate-500">

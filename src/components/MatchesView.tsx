@@ -11,6 +11,7 @@ type MatchesViewProps = {
 	groups: Group[];
 	teamsById: TeamsById;
 	favoriteTeamId: string | null;
+	onOpenMatch: (match: Match) => void;
 };
 
 function leagueOf(match: Match, groups: Group[], teamsById: TeamsById): LeagueCode | null {
@@ -27,7 +28,7 @@ function leagueOf(match: Match, groups: Group[], teamsById: TeamsById): LeagueCo
 	return leagues[0] ?? null;
 }
 
-export default function MatchesView({ matches, groups, teamsById, favoriteTeamId }: MatchesViewProps) {
+export default function MatchesView({ matches, groups, teamsById, favoriteTeamId, onOpenMatch }: MatchesViewProps) {
 	const [filter, setFilter] = useState<Filter>('all');
 	const todayRef = useRef<HTMLElement | null>(null);
 	const today = todayKey();
@@ -183,7 +184,7 @@ export default function MatchesView({ matches, groups, teamsById, favoriteTeamId
 						{formatDayLabel(day.matches[0].kickoffAt)}
 					</h2>
 					{day.matches.map((m) => (
-						<MatchRow key={m.id} match={m} teamsById={teamsById} favoriteTeamId={favoriteTeamId} />
+						<MatchRow key={m.id} match={m} teamsById={teamsById} favoriteTeamId={favoriteTeamId} onOpen={onOpenMatch} />
 					))}
 				</section>
 			))}

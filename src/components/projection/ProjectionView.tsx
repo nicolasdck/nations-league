@@ -10,6 +10,15 @@ import { readString, STORAGE_KEYS, writeString } from '../../utils/storage';
 import FavoritePath from './FavoritePath';
 import GlobalBracket from './GlobalBracket';
 import TieCard from './TieCard';
+import WhatIfPanel from './WhatIfPanel';
+import {
+	applyOverrides,
+	countActiveOverrides,
+	loadOverrides,
+	saveOverrides,
+	type ScoreEntry,
+	type ScoreOverrides,
+} from '../../utils/whatIf';
 
 type ProjectionViewProps = {
 	groups: Group[];
@@ -20,8 +29,10 @@ type ProjectionViewProps = {
 };
 
 type BracketLayout = 'global' | 'columns';
+// « Et si ? » = mode théorique appliqué aux scores saisis par l'utilisateur.
+type ViewMode = ProjectionMode | 'whatif';
 
-const MODES: { id: ProjectionMode; icon: string; label: string; help: string }[] = [
+const MODES: { id: ViewMode; icon: string; label: string; help: string }[] = [
 	{
 		id: 'logical',
 		icon: '🧮',
@@ -33,6 +44,12 @@ const MODES: { id: ProjectionMode; icon: string; label: string; help: string }[]
 		icon: '📣',
 		label: 'Supporter',
 		help: 'Même modèle, mais votre équipe gagne tous ses matchs restants (et les tirs au but).',
+	},
+	{
+		id: 'whatif',
+		icon: '🎛️',
+		label: 'Et si ?',
+		help: 'Saisissez vos scores sur les matchs restants : classements, qualifiés, barrages et tableau se recalculent en direct. Les matchs non saisis suivent la projection théorique (score grisé).',
 	},
 ];
 
@@ -74,7 +91,21 @@ export default function ProjectionView({
 	favoriteTeamId,
 	onPickTeam,
 }: ProjectionViewProps) {
-	const [mode, setMode] = useState<ProjectionMode>('logical');
+	const [mode, setMode] = useState<ViewMode>('logical');
+	const [overrides, setOverrides] = useState<ScoreOverrides>(loadOverrides);
+	const changeScore = (matchId: number, entry: ScoreEntry) => {
+		setOverrides((prev) => {
+			const next = { ...prev };
+			if (entry[0] === null && entry[1] === null) delete next[matchId];
+			else next[matchId] = entry;
+			saveOverrides(next);
+			return next;
+		});
+	};
+	const resetScores = () => {
+		setOverrides({});
+		saveOverrides({});
+	};
 	const [layout, setLayout] = useState<BracketLayout>(() =>
 		readString(STORAGE_KEYS.bracketLayout) === 'columns' ? 'columns' : 'global',
 	);
@@ -90,12 +121,24 @@ export default function ProjectionView({
 	const [selectedLeague, setSelectedLeague] = useState<LeagueCode | null>(null);
 	const league = selectedLeague ?? favoriteLeague ?? 'A';
 
+	const effectiveMatches = useMemo(
+		() => (mode === 'whatif' ? applyOverrides(matches, overrides) : matches),
+		[mode, matches, overrides],
+	);
+	const activeOverrides = useMemo(() => countActiveOverrides(matches, overrides), [matches, overrides]);
+
 	const projection = useMemo(
 		() =>
 			groups.length > 0
-				? projectCompetition(groups, matches, teamsById, mode, favoriteTeamId)
+				? projectCompetition(
+						groups,
+						effectiveMatches,
+						teamsById,
+						mode === 'supporter' ? 'supporter' : 'logical',
+						favoriteTeamId,
+					)
 				: null,
-		[groups, matches, teamsById, mode, favoriteTeamId],
+		[groups, effectiveMatches, teamsById, mode, favoriteTeamId],
 	);
 
 	const bracketModel = useMemo(() => (projection ? buildProjectedBracket(projection) : null), [projection]);
@@ -105,7 +148,7 @@ export default function ProjectionView({
 
 	return (
 		<div className="flex flex-col gap-4">
-			<div className="grid grid-cols-2 gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
+			<div className="grid grid-cols-3 gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
 				{MODES.map((m) => (
 					<button
 						key={m.id}
@@ -135,6 +178,24 @@ export default function ProjectionView({
 			) : (
 				projection && (
 					<>
+						{mode === 'whatif' && (
+							<WhatIfPanel
+								groups={groups}
+								matches={matches}
+								teamsById={teamsById}
+								favoriteTeamId={favoriteTeamId}
+								league={league}
+								favoriteLeague={favoriteLeague}
+								onLeagueChange={setSelectedLeague}
+								standingsByGroup={projection.standingsByGroup}
+								outcomes={projection.outcomes}
+								overrides={overrides}
+								activeCount={activeOverrides}
+								onChange={changeScore}
+								onReset={resetScores}
+							/>
+						)}
+
 						{favoriteTeam && projection.favoritePath.length > 0 && (
 							<FavoritePath team={favoriteTeam} steps={projection.favoritePath} />
 						)}
@@ -274,27 +335,29 @@ export default function ProjectionView({
 							</section>
 						)}
 
-						<section className="flex flex-col gap-3">
-							<h3 className="text-sm font-black text-slate-100">Classements finaux projetés</h3>
-							<LeagueTabs value={league} onChange={setSelectedLeague} favoriteLeague={favoriteLeague} />
-							<OutcomeLegend league={league} />
-							<div className="grid gap-3 md:grid-cols-2">
-								{groups
-									.filter((g) => g.league === league)
-									.map((group) => (
-										<StandingsTable
-											key={group.id}
-											title={`Groupe ${group.id}`}
-											subtitle="projection"
-											rows={projection.standingsByGroup[group.id] ?? []}
-											teamsById={teamsById}
-											outcomes={projection.outcomes}
-											favoriteTeamId={favoriteTeamId}
-											showForm={false}
-										/>
-									))}
-							</div>
-						</section>
+						{mode !== 'whatif' && (
+							<section className="flex flex-col gap-3">
+								<h3 className="text-sm font-black text-slate-100">Classements finaux projetés</h3>
+								<LeagueTabs value={league} onChange={setSelectedLeague} favoriteLeague={favoriteLeague} />
+								<OutcomeLegend league={league} />
+								<div className="grid gap-3 md:grid-cols-2">
+									{groups
+										.filter((g) => g.league === league)
+										.map((group) => (
+											<StandingsTable
+												key={group.id}
+												title={`Groupe ${group.id}`}
+												subtitle="projection"
+												rows={projection.standingsByGroup[group.id] ?? []}
+												teamsById={teamsById}
+												outcomes={projection.outcomes}
+												favoriteTeamId={favoriteTeamId}
+												showForm={false}
+											/>
+										))}
+								</div>
+							</section>
+						)}
 					</>
 				)
 			)}

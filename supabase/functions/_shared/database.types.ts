@@ -222,6 +222,32 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			match_details: {
+				Row: {
+					match_id: number;
+					payload: Json;
+					fetched_at: string;
+				};
+				Insert: {
+					match_id: number;
+					payload: Json;
+					fetched_at?: string;
+				};
+				Update: {
+					match_id?: number;
+					payload?: Json;
+					fetched_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'match_details_match_id_fkey';
+						columns: ['match_id'];
+						isOneToOne: true;
+						referencedRelation: 'matches';
+						referencedColumns: ['id'];
+					},
+				];
+			};
 			sync_status: {
 				Row: {
 					id: string;
